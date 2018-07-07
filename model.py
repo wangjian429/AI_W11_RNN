@@ -57,7 +57,7 @@ class Model():
 
             data = tf.nn.embedding_lookup(embed, self.X)
 
-        #outputs = []
+        outputs = []
         with tf.variable_scope('rnn'):
             ##################
             # Your Code here
@@ -73,7 +73,7 @@ class Model():
             #    (cell_output, state) = cell(data[:, time_step, :], state)
             #    outputs.append(cell_output)  # output: shape[num_steps][batch,hidden_size]
         
-        seq_output = tf.concat( outputs,1)
+        seq_output = tf.concat(outputs,1)
         # flatten it
         seq_output_final = tf.reshape(seq_output, [-1, self.dim_embedding])
         with tf.variable_scope('softmax'):
