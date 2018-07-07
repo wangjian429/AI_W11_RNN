@@ -31,7 +31,7 @@ class Model():
         self.dim_embedding = dim_embedding
         self.rnn_layers = rnn_layers
         self.learning_rate = learning_rate
-
+    #使用word2vec得到的embedding.npy做为embedding输入
     def build(self, embedding_file="./embedding.npy"):
         # global step
         self.global_step = tf.Variable(
@@ -48,6 +48,7 @@ class Model():
             if embedding_file:
                 # if embedding file provided, use it.
                 embedding = np.load(embedding_file)
+                print(embedding.shape)
                 embed = tf.constant(embedding, name='embedding')
             else:
                 # if not, initialize an embedding and train it.
@@ -60,28 +61,36 @@ class Model():
         outputs = []
         with tf.variable_scope('rnn'):
             ##################
-            # Your Code here
+            # My Code here
             ##################
+            #新建一个hidden unit 为128维的LSTM单元
             lstm_cell = tf.contrib.rnn.BasicLSTMCell(self.dim_embedding, forget_bias=0.0, state_is_tuple=True)
+            #添加dropout
             lstm_cell = tf.nn.rnn_cell.DropoutWrapper(lstm_cell, output_keep_prob=self.keep_prob)
+            #将rnn_layers层LSTM组合起来
             cell = tf.nn.rnn_cell.MultiRNNCell([lstm_cell] * self.rnn_layers, state_is_tuple=True)
+            #初始化一个hidden state
             self.state_tensor = cell.zero_state(self.batch_size, tf.float32)
+            #用tf.nn.dynamic_rnn 训练数据
             outputs, self.outputs_state_tensor = tf.nn.dynamic_rnn(cell, data, initial_state=self.state_tensor)
             #for time_step in range(self.num_steps):
             #    if time_step > 0: tf.get_variable_scope().reuse_variables()
                 # cell_out: [batch, hidden_size]
             #    (cell_output, state) = cell(data[:, time_step, :], state)
             #    outputs.append(cell_output)  # output: shape[num_steps][batch,hidden_size]
-        
+        #将训练完的输出在第二个维度拼接成[batch, hidden_size*num_steps]，方便计算
         seq_output = tf.concat(outputs,1)
         # flatten it
+        #将之面的结果reshape, 成[batch*numsteps, hidden_size]
         seq_output_final = tf.reshape(seq_output, [-1, self.dim_embedding])
         with tf.variable_scope('softmax'):
             ##################
-            # Your Code here
+            # My Code here
             ##################
+            #定义w,b的tensen 变量并分别初始化
             W_o = tf.get_variable('W_o', [self.dim_embedding, self.num_words], initializer=tf.random_normal_initializer(stddev=0.01))
             b_o = tf.get_variable('b_o', [self.num_words], initializer=tf.constant_initializer(0.0))
+        #从隐藏语义转化成完全表示
         logits = tf.matmul(seq_output_final, W_o) + b_o
 
         tf.summary.histogram('logits', logits)

@@ -56,8 +56,9 @@ with tf.Session() as sess:
         for X, Y in utils.get_train_data(vocabulary, batch_size=FLAGS.batch_size, num_steps=FLAGS.num_steps):
 
             ##################
-            # Your Code here
+            # My Code here
             ##################
+            #将get_train_data得到的X，Y以及state，keep_prob等值传入model进行训练
             feed_dict = {model.X: X, model.Y: Y, model.state_tensor: state, model.keep_prob: FLAGS.keep_prob}
             gs, _, state, l, summary_string = sess.run(
                 [model.global_step, model.optimizer, model.outputs_state_tensor, model.loss, model.merged_summary_op], feed_dict=feed_dict)
